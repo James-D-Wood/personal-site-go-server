@@ -19,6 +19,8 @@ type Article struct {
 
 // An interface to refresent the Model (for mocking in test)
 type ArticleDataAccessLayer interface {
+	All() ([]Article, error)
+	Get(uri string) (Article, error)
 	Validate(a Article) (errs []error)
 	Save(a Article) (newID int, err error)
 }
@@ -26,6 +28,34 @@ type ArticleDataAccessLayer interface {
 // The Model with Database Implementation
 type ArticleModel struct {
 	DB *pgx.Conn
+}
+
+func (model *ArticleModel) All() (articles []Article, err error) {
+	stmt := `
+		SELECT id, uri, title, summary, body_md
+		FROM articles;
+	`
+	rows, err := model.DB.Query(context.Background(), stmt)
+	if err != nil {
+		return articles, err
+	}
+
+	for rows.Next() {
+		var article Article
+		rows.Scan(&article.ID, &article.URI, &article.Title, &article.Summary, &article.Body)
+		articles = append(articles, article)
+	}
+	return articles, err
+}
+
+func (model *ArticleModel) Get(uri string) (article Article, err error) {
+	stmt := `
+		SELECT id, uri, title, summary, body_md
+		FROM articles
+		WHERE uri = $1;
+	`
+	err = model.DB.QueryRow(context.Background(), stmt, uri).Scan(&article.ID, &article.URI, &article.Title, &article.Summary, &article.Body)
+	return article, err
 }
 
 func (model *ArticleModel) Validate(a Article) (errs []error) {
