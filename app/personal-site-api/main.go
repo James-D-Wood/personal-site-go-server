@@ -22,7 +22,7 @@ func initializeRoutes(db *pgx.Conn) *mux.Router {
 	r.Use(middleware.LoggingMiddleware)
 	r.HandleFunc("/", rootHandler)
 	apiV1 := r.PathPrefix("/api/v1").Subrouter()
-	apiV1.Use(middleware.AuthMiddleware)
+	apiV1.Use(middleware.CorsMiddleware)
 	articles.InitializeRoutes(apiV1.PathPrefix("/articles").Subrouter(), &articles.ArticleModel{DB: db})
 	return r
 }
