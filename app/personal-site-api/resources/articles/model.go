@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jdwoo/personal-site-go-server/app/personal-site-api/database"
+	"github.com/jdwoo/personal-site-go-server/internal/webserverutils"
 )
 
 // A struct to model the object
@@ -21,8 +22,9 @@ type Article struct {
 type ArticleDataAccessLayer interface {
 	All() ([]Article, error)
 	Get(uri string) (Article, error)
-	Validate(a Article) (errs []error)
 	Save(a Article) (newID int, err error)
+	Update(uri string, a Article) (newID int, err error)
+	Validate(a Article) (errs []error)
 }
 
 // The Model with Database Implementation
@@ -56,6 +58,25 @@ func (model *ArticleModel) Get(uri string) (article Article, err error) {
 	`
 	err = model.DB.QueryRow(context.Background(), stmt, uri).Scan(&article.ID, &article.URI, &article.Title, &article.Summary, &article.Body)
 	return article, err
+}
+
+func (model *ArticleModel) Update(uri string, a Article) (newID int, err error) {
+	if uri != a.URI {
+		return 0, webserverutils.NewRequestError("URI in path does not match URI in body.")
+	}
+	stmt := `
+		UPDATE articles
+		SET title=$1, summary=$2, body_md=$3 
+		WHERE uri=$4
+		RETURNING id
+	`
+	err = model.DB.QueryRow(
+		context.Background(),
+		stmt,
+		a.Title, a.Summary, a.Body, uri,
+	).Scan(&newID)
+
+	return newID, err
 }
 
 func (model *ArticleModel) Validate(a Article) (errs []error) {
