@@ -11,12 +11,14 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	"github.com/jdwoo/personal-site-go-server/internal/webserverutils"
 )
 
 type MockArticleModel struct {
 	articles         []Article
 	validationErrors []error
 	fetchError       error
+	updateError      error
 	saveError        error
 }
 
@@ -28,6 +30,15 @@ func (model MockArticleModel) Get(uri string) (Article, error) {
 		}
 	}
 	return Article{}, errors.New("no rows in result set")
+}
+func (model MockArticleModel) Update(uri string, a Article) (int, error) {
+	for _, article := range model.articles {
+		fmt.Println(article.URI)
+		if article.URI == uri {
+			return article.ID, model.updateError
+		}
+	}
+	return 0, errors.New("no rows in result set")
 }
 func (model MockArticleModel) Validate(a Article) []error  { return model.validationErrors }
 func (model MockArticleModel) Save(a Article) (int, error) { return 1, model.saveError }
@@ -372,6 +383,191 @@ func TestCreateArticleHandlerSaveError(t *testing.T) {
 	expectedCode := 500
 	expectedBody := model.saveError.Error()
 
+	if rr.Code != expectedCode {
+		t.Errorf("expected status code %d but received %d", expectedCode, rr.Result().StatusCode)
+	}
+
+	respBody := strings.TrimSpace(rr.Body.String())
+	if respBody != expectedBody {
+		t.Errorf("expected response body '%s' but received '%s'", expectedBody, respBody)
+	}
+}
+
+func TestUpdateArticleHandlerSuccess(t *testing.T) {
+
+	model := MockArticleModel{
+		articles: []Article{
+			{
+				ID:      1,
+				URI:     "some-article-1",
+				Title:   "Some Article: Part 1",
+				Summary: "A Short Summary",
+				Body:    "A Body",
+			},
+			{
+				ID:      2,
+				URI:     "some-article-2",
+				Title:   "Some Article: Part 2",
+				Summary: "A Short Summary",
+				Body:    "A Body",
+			},
+		},
+	}
+	handler := UpdateArticleHandler(model)
+
+	targetURI := "some-article-2"
+	reqBody := fmt.Sprintf(`
+		{
+			"title": "Some article title",
+			"uri": "%s",
+			"summary": "some summary",
+			"body": "some thoughts"
+		}
+	`, targetURI)
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/api/v1/article/%s", targetURI), bytes.NewBufferString(reqBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req = mux.SetURLVars(req, map[string]string{"articleURI": targetURI})
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	expectedCode := 200
+
+	if rr.Code != expectedCode {
+		t.Errorf("expected status code %d but received %d", expectedCode, rr.Result().StatusCode)
+	}
+}
+
+func TestUpdateArticleHandlerMismatchURI(t *testing.T) {
+
+	expectedBody := "URI in URL var does not match URI in body"
+
+	model := MockArticleModel{
+		articles: []Article{
+			{
+				ID:      1,
+				URI:     "some-article-1",
+				Title:   "Some Article: Part 1",
+				Summary: "A Short Summary",
+				Body:    "A Body",
+			},
+			{
+				ID:      2,
+				URI:     "some-article-2",
+				Title:   "Some Article: Part 2",
+				Summary: "A Short Summary",
+				Body:    "A Body",
+			},
+		},
+		updateError: webserverutils.NewRequestError(expectedBody),
+	}
+	handler := UpdateArticleHandler(model)
+
+	targetURI := "some-article-2"
+	reqBody := `
+		{
+			"title": "Some article title",
+			"uri": "some-other-uri",
+			"summary": "some summary",
+			"body": "some thoughts"
+		}
+	`
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/api/v1/article/%s", targetURI), bytes.NewBufferString(reqBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req = mux.SetURLVars(req, map[string]string{"articleURI": targetURI})
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	expectedCode := 422
+	if rr.Code != expectedCode {
+		t.Errorf("expected status code %d but received %d", expectedCode, rr.Result().StatusCode)
+	}
+
+	respBody := strings.TrimSpace(rr.Body.String())
+	if !strings.Contains(respBody, expectedBody) {
+		t.Errorf("expected response body '%s' but received '%s'", expectedBody, respBody)
+	}
+}
+
+func TestUpdateArticleHandlerInvalidPayload(t *testing.T) {
+
+	model := MockArticleModel{
+		validationErrors: []error{
+			errors.New("test error 1"),
+			errors.New("test error 2"),
+		},
+	}
+	handler := UpdateArticleHandler(model)
+
+	targetURI := "some-article-2"
+	reqBody := fmt.Sprintf(`
+		{
+			"title": "Some article title",
+			"uri": "%s",
+			"summary": "some summary",
+			"body": "some thoughts"
+		}
+	`, targetURI)
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/api/v1/article/%s", targetURI), bytes.NewBufferString(reqBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req = mux.SetURLVars(req, map[string]string{"articleURI": targetURI})
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	expectedCode := 422
+	expectedBody := "Invalid Request Body: test error 1, test error 2"
+	if rr.Code != expectedCode {
+		t.Errorf("expected status code %d but received %d", expectedCode, rr.Result().StatusCode)
+	}
+
+	respBody := strings.TrimSpace(rr.Body.String())
+	if respBody != expectedBody { // TODO: remove contains for strict equality
+		t.Errorf("expected response body '%s' but received '%s'", expectedBody, respBody)
+	}
+}
+func TestUpdateArticleHandlerNotFound(t *testing.T) {
+
+	model := MockArticleModel{
+		articles: []Article{
+			{
+				ID:      1,
+				URI:     "some-article-1",
+				Title:   "Some Article: Part 1",
+				Summary: "A Short Summary",
+				Body:    "A Body",
+			},
+		},
+	}
+	handler := UpdateArticleHandler(model)
+
+	targetURI := "some-article-2"
+	reqBody := fmt.Sprintf(`
+		{
+			"title": "Some article title",
+			"uri": "%s",
+			"summary": "some summary",
+			"body": "some thoughts"
+		}
+	`, targetURI)
+	req, err := http.NewRequest("PUT", fmt.Sprintf("/api/v1/article/%s", targetURI), bytes.NewBufferString(reqBody))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req = mux.SetURLVars(req, map[string]string{"articleURI": targetURI})
+
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	expectedCode := 404
+	expectedBody := "article not found"
 	if rr.Code != expectedCode {
 		t.Errorf("expected status code %d but received %d", expectedCode, rr.Result().StatusCode)
 	}
