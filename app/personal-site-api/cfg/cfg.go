@@ -1,18 +1,21 @@
 package cfg
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 type DBConfig struct {
 	User     string
 	Password string
 	HostName string
-	Port     int
+	Port     string
 	Database string
 }
 
 func (config DBConfig) GetConnectionString() string {
 	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s",
+		"postgres://%s:%s@%s:%s/%s",
 		config.User,
 		config.Password,
 		config.HostName,
@@ -28,11 +31,11 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		Database: DBConfig{
-			User:     "james",
-			Password: "",
-			HostName: "localhost",
-			Port:     5432,
-			Database: "personal_site",
+			User:     os.Getenv("PS_DB_User"),
+			Password: os.Getenv("PS_DB_Password"),
+			HostName: os.Getenv("PS_DB_HostName"),
+			Port:     os.Getenv("PS_DB_Port"),
+			Database: os.Getenv("PS_DB_Database"),
 		},
 	}
 }
