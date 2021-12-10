@@ -19,7 +19,7 @@ This API serves as a common backend to a handful of my projects and as a templat
 |
 ├── internal                # utilities only needed in this app
 |       
-└──scripts                 # DB migrations
+└──scripts                  # DB migrations
 ```
 
 ## Resources 
@@ -30,5 +30,5 @@ Create and Update endpoints are auth protected, but Read endpoints are exposed.
 
 Try:
 ```sh
-curl https://jameswood.dev/api/v1/articles
+curl https://api.jameswood.dev/api/v1/articles
 ```
