@@ -31,8 +31,7 @@ Create and Update endpoints are auth protected, but Read endpoints are exposed.
 
 Try:
 ```sh
-<<<<<<< HEAD
-curl https://jameswood.dev/api/v1/articles
+curl https://api.jameswood.dev/api/v1/articles
 ```
 
 ## Development
@@ -44,7 +43,3 @@ migrate create -ext sql -dir db/migrations -seq [migration_name]
 # populate up and down files
 migrate -path db/migrations -database "postgres://localhost:5432/personal_site?sslmode=disable" up
 ``` 
-=======
-curl https://api.jameswood.dev/api/v1/articles
-```
->>>>>>> main
