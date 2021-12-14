@@ -17,9 +17,10 @@ This API serves as a common backend to a handful of my projects and as a templat
 |       ├── resources       # REST resources (handlers, models, routes)
 |       └── server          # loads environment
 |
-├── internal                # utilities only needed in this app
+├── db                
+│   └── migrations          # migrations
 |       
-└──scripts                 # DB migrations
+└──  internal               # utilities only needed in this app
 ```
 
 ## Resources 
@@ -32,3 +33,13 @@ Try:
 ```sh
 curl https://jameswood.dev/api/v1/articles
 ```
+
+## Development
+
+### SQL Migrations
+For migrations, I use [migrate](https://github.com/golang-migrate/migrate). To create a new migration the steps are:
+```bash
+migrate create -ext sql -dir db/migrations -seq [migration_name]
+# populate up and down files
+migrate -path db/migrations -database "postgres://localhost:5432/personal_site?sslmode=disable" up
+``` 

@@ -77,7 +77,7 @@ func CreateArticleHandler(model ArticleDataAccessLayer) http.HandlerFunc {
 			return
 		}
 
-		a.ID, err = model.Save(a)
+		savedArticle, err := model.Save(a)
 		if err != nil {
 			if strings.Contains(err.Error(), "Invalid Request Body:") {
 				http.Error(w, err.Error(), http.StatusUnprocessableEntity)
@@ -87,7 +87,7 @@ func CreateArticleHandler(model ArticleDataAccessLayer) http.HandlerFunc {
 			return
 		}
 
-		bytes, _ := json.Marshal(a)
+		bytes, _ := json.Marshal(savedArticle)
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		w.Write(bytes)
@@ -123,7 +123,7 @@ func UpdateArticleHandler(model ArticleDataAccessLayer) http.HandlerFunc {
 			return
 		}
 
-		a.ID, err = model.Update(articleURI, a)
+		updatedArticle, err := model.Update(articleURI, a)
 		if err != nil {
 			if strings.Contains(err.Error(), "Invalid Request Body:") {
 				http.Error(w, err.Error(), http.StatusUnprocessableEntity)
@@ -135,7 +135,7 @@ func UpdateArticleHandler(model ArticleDataAccessLayer) http.HandlerFunc {
 			return
 		}
 
-		bytes, _ := json.Marshal(a)
+		bytes, _ := json.Marshal(updatedArticle)
 		w.Header().Add("Content-Type", "application/json")
 		w.Write(bytes)
 	}

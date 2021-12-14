@@ -1,0 +1,3 @@
+ALTER TABLE articles
+ADD COLUMN dt_created TIMESTAMP NOT NULL,
+ADD COLUMN dt_updated TIMESTAMP;
