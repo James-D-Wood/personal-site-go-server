@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/jdwoo/personal-site-go-server/internal/webserverutils"
@@ -31,17 +32,24 @@ func (model MockArticleModel) Get(uri string) (Article, error) {
 	}
 	return Article{}, errors.New("no rows in result set")
 }
-func (model MockArticleModel) Update(uri string, a Article) (int, error) {
+func (model MockArticleModel) Update(uri string, a Article) (Article, error) {
 	for _, article := range model.articles {
 		fmt.Println(article.URI)
 		if article.URI == uri {
-			return article.ID, model.updateError
+			article = a
+			ts := time.Now()
+			article.DateUpdated = &ts
+			return article, model.updateError
 		}
 	}
-	return 0, errors.New("no rows in result set")
+	return a, errors.New("no rows in result set")
 }
-func (model MockArticleModel) Validate(a Article) []error  { return model.validationErrors }
-func (model MockArticleModel) Save(a Article) (int, error) { return 1, model.saveError }
+func (model MockArticleModel) Validate(a Article) []error { return model.validationErrors }
+func (model MockArticleModel) Save(a Article) (Article, error) {
+	a.ID = 1
+	a.DateCreated = time.Now()
+	return a, model.saveError
+}
 
 func TestGetArticlesHandlerSuccess(t *testing.T) {
 	model := MockArticleModel{
