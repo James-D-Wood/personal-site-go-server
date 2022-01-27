@@ -3,6 +3,7 @@ package valuesort
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jdwoo/personal-site-go-server/app/personal-site-api/database"
@@ -29,7 +30,7 @@ type ValueSortBoard struct {
 type ValueSortBoardDataAccessLayer interface {
 	Create(boardName string) (err error)
 	Get(boardName string) (board ValueSortBoard, err error)
-	// UpdateCard(cardName string, card ValueSortCard) (err error)
+	Upsert(board ValueSortBoard) (err error)
 }
 
 // The Model with Database Implementation
@@ -121,4 +122,33 @@ func (model *ValueSortBoardModel) Create(boardName string) (err error) {
 	}
 
 	return err
+}
+
+func (model *ValueSortBoardModel) Upsert(board ValueSortBoard) (err error) {
+	for _, col := range board.Columns {
+		for _, card := range col.Cards {
+			// TODO: can accidentally create new tables
+			stmt := `
+				INSERT INTO value_sort_cards (board_name, card_body, card_details, column_name) 
+				VALUES ($1, $2, $3, $4)
+				ON CONFLICT (board_name, card_body) 
+				DO 
+					UPDATE SET column_name = $4
+				RETURNING board_name
+			`
+
+			var result string
+			err := model.DB.QueryRow(
+				context.Background(),
+				stmt,
+				board.Name, card.Body, card.Details, col.Title,
+			).Scan(&result)
+
+			if err != nil {
+				fmt.Println(err)
+				return database.TranslateError(err)
+			}
+		}
+	}
+	return nil
 }

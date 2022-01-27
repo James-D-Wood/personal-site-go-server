@@ -37,16 +37,7 @@ func CreateBoardHandler(model ValueSortBoardDataAccessLayer) http.HandlerFunc {
 			return
 		}
 
-		resBody := CreateBoardResBody{Message: "success"}
-		jBytes, err := json.Marshal(resBody)
-		if err != nil {
-			http.Error(w, "internal error building response", http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		w.Write(jBytes)
+		w.Write([]byte("success"))
 	}
 }
 
@@ -73,5 +64,25 @@ func GetBoardHandler(model ValueSortBoardDataAccessLayer) http.HandlerFunc {
 		}
 		w.Header().Add("Content-Type", "application/json")
 		w.Write(jbytes)
+	}
+}
+
+func UpdateBoardHandler(model ValueSortBoardDataAccessLayer) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var board ValueSortBoard
+		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
+		err := decoder.Decode(&board)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Could not process request body - %s", err.Error()), http.StatusUnprocessableEntity)
+		}
+
+		err = model.Upsert(board)
+		if err != nil {
+			http.Error(w, "unable to update board", http.StatusInternalServerError)
+			return
+		}
+
+		w.Write([]byte("success"))
 	}
 }
