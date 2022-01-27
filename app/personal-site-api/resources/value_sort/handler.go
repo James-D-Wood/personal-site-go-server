@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -28,8 +29,11 @@ func CreateBoardHandler(model ValueSortBoardDataAccessLayer) http.HandlerFunc {
 
 		err = model.Create(reqBody.BoardName)
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, "unable to create board", http.StatusInternalServerError)
+			if strings.Contains(err.Error(), "Invalid Request Body:") {
+				http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+			} else {
+				http.Error(w, "unable to create board", http.StatusInternalServerError)
+			}
 			return
 		}
 
