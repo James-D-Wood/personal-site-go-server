@@ -1,0 +1,1 @@
+DROP TABLE value_sort_cards;
