@@ -17,6 +17,7 @@ type ValueSortCard struct {
 type ValueSortColumn struct {
 	Title string          `json:"title"`
 	Cards []ValueSortCard `json:"cards"`
+	Order int             `json:"order"`
 }
 
 type ValueSortBoard struct {
@@ -28,6 +29,7 @@ type ValueSortBoard struct {
 type ValueSortBoardDataAccessLayer interface {
 	Create(boardName string) (err error)
 	Get(boardName string) (board ValueSortBoard, err error)
+	// UpdateCard(cardName string, card ValueSortCard) (err error)
 }
 
 // The Model with Database Implementation
@@ -57,10 +59,11 @@ func (model *ValueSortBoardModel) Get(boardName string) (board ValueSortBoard, e
 		"Very Important",
 		"Most Important",
 	}
-	for _, colTitle := range columnTitles {
+	for idx, colTitle := range columnTitles {
 		colMap[colTitle] = ValueSortColumn{
 			Title: colTitle,
 			Cards: []ValueSortCard{},
+			Order: idx,
 		}
 	}
 
