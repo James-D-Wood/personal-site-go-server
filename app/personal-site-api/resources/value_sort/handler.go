@@ -14,10 +14,6 @@ func CreateBoardHandler(model ValueSortBoardDataAccessLayer) http.HandlerFunc {
 		BoardName string `json:"boardName"`
 	}
 
-	type CreateBoardResBody struct {
-		Message string `json:"message"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		var reqBody CreateBoardReqBody
 		decoder := json.NewDecoder(r.Body)
