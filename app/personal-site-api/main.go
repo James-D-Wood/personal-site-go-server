@@ -11,6 +11,7 @@ import (
 	"github.com/jdwoo/personal-site-go-server/app/personal-site-api/database"
 	"github.com/jdwoo/personal-site-go-server/app/personal-site-api/middleware"
 	"github.com/jdwoo/personal-site-go-server/app/personal-site-api/resources/articles"
+	valuesort "github.com/jdwoo/personal-site-go-server/app/personal-site-api/resources/value_sort"
 )
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +25,7 @@ func initializeRoutes(db *pgx.Conn) *mux.Router {
 	apiV1 := r.PathPrefix("/api/v1").Subrouter()
 	apiV1.Use(middleware.CorsMiddleware)
 	articles.InitializeRoutes(apiV1.PathPrefix("/articles").Subrouter(), &articles.ArticleModel{DB: db})
+	valuesort.InitializeRoutes(apiV1.PathPrefix("/value-sort").Subrouter(), &valuesort.ValueSortBoardModel{DB: db})
 	return r
 }
 
