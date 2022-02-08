@@ -68,7 +68,7 @@ const InitialData = `
 		{
 		  "body": "FAMILY",
 		  "details":
-			"to have a happy, loving family to be physically fit and strong"
+			"to have a happy, loving family"
 		},
 		{ "body": "FITNESS", "details": "to be physically fit and strong" },
 		{
@@ -99,8 +99,7 @@ const InitialData = `
 		{ "body": "IMAGINATION", "details": "to have dreams and see possibilities" },
 		{
 		  "body": "INDEPENDENCE",
-		  "details":
-			"to be free from depending on others to work hard and well at my life tasks"
+		  "details": "to be free from depending on others"
 		},
 		{ "body": "INDUSTRY", "details": "to work hard and well at my life tasks" },
 		{ "body": "INNER PEACE", "details": "to experience personal peace" },
@@ -177,7 +176,7 @@ const InitialData = `
 		},
 		{ "body": "RISK", "details": "to take risks and chances" },
 		{ "body": "ROMANCE", "details": "to have intense, exciting love in my life" },
-		{ "body": "SAFETY", "details": "to be safe and secure to accept myself as " },
+		{ "body": "SAFETY", "details": "to be safe and secure" },
 		{ "body": "SELF-ACCEPTANCE", "details": "to accept myself as I am" },
 		{ "body": "SELF-CONTROL", "details": "to be disciplined in my own actions" },
 		{ "body": "SELF-ESTEEM", "details": "to feel good about myself" },
