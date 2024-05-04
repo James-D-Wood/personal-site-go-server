@@ -2,7 +2,8 @@ package cfg
 
 import (
 	"fmt"
-	"os"
+
+	"github.com/spf13/viper"
 )
 
 type DBConfig struct {
@@ -29,13 +30,20 @@ type Config struct {
 }
 
 func Load() *Config {
+	viper.SetConfigName("conf")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("fatal error config file: %w", err))
+	}
 	return &Config{
 		Database: DBConfig{
-			User:     os.Getenv("PS_DB_User"),
-			Password: os.Getenv("PS_DB_Password"),
-			HostName: os.Getenv("PS_DB_HostName"),
-			Port:     os.Getenv("PS_DB_Port"),
-			Database: os.Getenv("PS_DB_Database"),
+			User:     viper.GetString("postgresql.user"),
+			Password: viper.GetString("postgresql.password"),
+			HostName: viper.GetString("postgresql.host"),
+			Port:     viper.GetString("postgresql.port"),
+			Database: viper.GetString("postgresql.database"),
 		},
 	}
 }
