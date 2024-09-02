@@ -28,6 +28,10 @@ This API serves as a common backend to a handful of my projects and as a templat
 
 ### Metadata
 
+```sh
+curl https://api.jameswood.dev/meta | jq .
+```
+
 ### Deprecated
 
 #### Articles
