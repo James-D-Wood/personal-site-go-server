@@ -32,6 +32,12 @@ This API serves as a common backend to a handful of my projects and as a templat
 curl https://api.jameswood.dev/meta | jq .
 ```
 
+### Recipes
+
+```sh
+curl https://api.jameswood.dev/api/v1/recipes | jq .
+```
+
 ### Deprecated
 
 #### Articles
