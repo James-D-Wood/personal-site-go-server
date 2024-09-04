@@ -8,9 +8,10 @@ import (
 
 // A struct to model the object
 type Ingredient struct {
-	Ingredient  string   `json:"ingredient"`
+	Name        string   `json:"name"`
 	Measurement *float64 `json:"measurement"`
 	Units       *string  `json:"units"`
+	Category    string   `json:"category"`
 }
 
 type Recipe struct {
@@ -37,10 +38,12 @@ func (model *RecipeModel) All() (recipes []Recipe, err error) {
 	}
 
 	stmt := `
-		SELECT r.name, r.serves, r.url, i.ingredient, i.measurement, i.units
+		SELECT r.name, r.serves, r.url, ri.ingredient, ri.measurement, ri.units, i.category
 		FROM recipes r
-		RIGHT OUTER JOIN recipe_ingredients i
-		ON r.name = i.recipe
+		LEFT OUTER JOIN recipe_ingredients ri
+		ON r.name = ri.recipe
+		LEFT OUTER JOIN ingredients i
+		on ri.ingredient = i.name
 	`
 	rows, err := model.DB.Query(context.Background(), stmt)
 	if err != nil {
@@ -51,12 +54,12 @@ func (model *RecipeModel) All() (recipes []Recipe, err error) {
 	for rows.Next() {
 		var res QueryResult
 
-		err = rows.Scan(&res.Name, &res.Serves, &res.Url, &res.Ingredient.Ingredient, &res.Measurement, &res.Units)
+		err = rows.Scan(&res.Recipe.Name, &res.Serves, &res.Url, &res.Ingredient.Name, &res.Measurement, &res.Units, &res.Category)
 		if err != nil {
 			break
 		}
 
-		if res.Name != recipe.Name {
+		if res.Recipe.Name != recipe.Name {
 			if recipe.Name != "" {
 				// append if not nil recipe
 				recipes = append(recipes, recipe)
