@@ -1,0 +1,1 @@
+ALTER TABLE ingredients ALTER COLUMN category DROP NOT NULL;
